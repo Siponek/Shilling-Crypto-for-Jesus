@@ -5,11 +5,12 @@ pragma abicoder v2;
 contract ChristmasLottery {
         // -----GOTTA GO FAST
     struct Range{
-        uint start;
-        uint end;
+        uint8 start;
+        uint8 end;
     }
-    uint private constant RANGE_ENTRIES= 2;
+    uint8 private constant RANGE_ENTRIES= 2;
     uint private constant DRAFT_LIMIT = 255;
+    uint private SEED = 2137;
 
     struct Participant_fast {
         string firstName;
@@ -20,7 +21,6 @@ contract ChristmasLottery {
         Range[] ranges;
     }
     uint private number_of_participants = 0;
-    uint private SEED = 2137;
     // For keepking track of existing participants
     mapping(string => bool) private exisiting_participants;
     // For keeping track of ranges of numbers
@@ -37,9 +37,9 @@ contract ChristmasLottery {
     event Response(bool success, bytes data);
     event LotteryReset();
 
-    uint public totalTicketsInGame;
-    uint[] public arrayWinningTicketsId;
-    mapping(uint => bool) private alreadyDrafted;
+    uint8 public totalTicketsInGame;
+    uint8[] public arrayWinningTicketsId;
+    mapping(uint8 => bool) private alreadyDrafted;
 
     address public owner;
     mapping(address => bool) public authorized;
@@ -80,7 +80,7 @@ contract ChristmasLottery {
         authorized[_addr] = false;
     }
 
-    function buyTicketsOffchainMode(uint numberOfTickets, string memory firstName, string memory lastName, string memory studentId)
+    function buyTicketsOffchainMode(uint8 numberOfTickets, string memory firstName, string memory lastName, string memory studentId)
         external
         // payable
         // Owner can authorize addresses to buy tickets as his dealers
@@ -99,31 +99,29 @@ contract ChristmasLottery {
     }
 
     // Call this function to draw winners
-    function drawWinnersOffChainMode(uint numberOfWinners) external onlyOwner returns (uint[] memory) {
+    function drawWinnersOffChainMode(uint8 numberOfWinners) external onlyOwner returns (uint8[] memory) {
         require(numberOfWinners <= totalTicketsInGame, "More winners than tickets available");
         
-        uint[] memory winners = new uint[](numberOfWinners);
-        uint draftedCount = 0;
+        uint8[] memory winners = new uint8[](numberOfWinners);
+        uint8 draftedCount = 0;
         uint attempts = 0;  // Track attempts to avoid infinite loops
-        for (uint i = 0; i < totalTicketsInGame; i++) {
-            alreadyDrafted[i] = false;
-        }
-        do {
+
+        while (draftedCount < numberOfWinners) {
             if (attempts > DRAFT_LIMIT + totalTicketsInGame) {
                 revert("Too many drafts, not enough unique tickets");
             }
 
-            uint winnerIndex = uint(random() % totalTicketsInGame);
-            winners[draftedCount++] = winnerIndex;
+            uint8 winnerIndex = uint8(random() % totalTicketsInGame);
             if (!alreadyDrafted[winnerIndex]) {
                 winners[draftedCount++] = winnerIndex;
                 alreadyDrafted[winnerIndex] = true;
             }
             attempts++;
-        } while (draftedCount < numberOfWinners);
+        }
         arrayWinningTicketsId = winners;  // Update the global winners array if needed
         return winners;
     }
+
     
     
     // Call this function to retrieve the
@@ -136,10 +134,11 @@ contract ChristmasLottery {
         return allParticipants;
     }
 
-    function random() private returns (uint) {
+    function random() private returns (uint8) {
         bytes32 hashValue = keccak256(abi.encodePacked(block.prevrandao,
                                         block.timestamp, SEED++));
-        return uint(hashValue);
+        uint8 smallInt = uint8(uint(hashValue));
+        return smallInt;
     }
 
     function withdrawFunds() external onlyOwner {
@@ -166,9 +165,8 @@ contract ChristmasLottery {
         }
     }
 
-    function addRange(uint _start, uint _end, string memory _student_id) private {
+    function addRange(uint8 _start, uint8 _end, string memory _student_id) private {
         require(_start <= _end, "Invalid range: start must be less than or equal to end");
-        // mapping (string => mapping (uint8 => Range)) private participants_ranges;
         Range[] memory current_participant_ranges = participants_ranges[_student_id];
         if (current_participant_ranges.length > 0) {
             Range memory lastRange = current_participant_ranges[current_participant_ranges.length - 1];
@@ -178,24 +176,42 @@ contract ChristmasLottery {
         participants_ranges[_student_id].push(Range(_start, _end));
     }
 
-    function getCurrentWinningID() onlyAuthorized public view returns (uint[] memory) {
+    function getCurrentWinningID() onlyAuthorized public view returns (uint8[] memory) {
         return arrayWinningTicketsId;
     }
     function getParticipantCredentials(string memory _studentId) view  onlyAuthorized public returns (Participant_fast memory) {
         return participants_credentials[_studentId];
     }
-    function findParticipantByTicket(uint ticketNumber) onlyAuthorized public view returns (Participant_fast memory) {
+    function findParticipantByTicket(uint8 ticketNumber) onlyAuthorized public view returns (Participant_fast memory, string memory) {
         for (uint8 i = 0; i < participants_list.length; i++) {
             string memory studentId = participants_list[i];
             Range[] memory ranges = participants_ranges[studentId];
             for (uint8 j = 0; j < ranges.length; j++) {
                 if (ticketNumber >= ranges[j].start && ticketNumber <= ranges[j].end) {
-                    return participants_credentials[studentId];
+                    return (participants_credentials[studentId], studentId);
                 }
             }
         }
         revert("Ticket number not found");
     }
 
+    function resetLottery() external onlyOwner {
+        // Reset total tickets and number of participants
 
+        // Clear participants data
+        for (uint8 i = 0; i < participants_list.length; i++) {
+            string memory studentId = participants_list[i];
+            delete participants_ranges[studentId];
+            delete participants_credentials[studentId];
+            delete exisiting_participants[studentId];
+        }
+        for (uint8 i = 0; i < arrayWinningTicketsId.length; i++) {
+            alreadyDrafted[i] = false;
+        }
+        totalTicketsInGame = 0;
+        number_of_participants = 0;
+        arrayWinningTicketsId = new uint8[](0);
+        delete participants_list;
+        emit LotteryReset();
+    }
 }
