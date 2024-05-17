@@ -5,10 +5,10 @@ pragma abicoder v2;
 contract ChristmasLottery {
         // -----GOTTA GO FAST
     struct Range{
-        uint8 start;
-        uint8 end;
+        uint start;
+        uint end;
     }
-    uint8 private constant RANGE_ENTRIES= 2;
+    uint private constant RANGE_ENTRIES= 2;
     uint private constant DRAFT_LIMIT = 255;
 
     struct Participant_fast {
@@ -20,6 +20,7 @@ contract ChristmasLottery {
         Range[] ranges;
     }
     uint private number_of_participants = 0;
+    uint private SEED = 2137;
     // For keepking track of existing participants
     mapping(string => bool) private exisiting_participants;
     // For keeping track of ranges of numbers
@@ -36,9 +37,9 @@ contract ChristmasLottery {
     event Response(bool success, bytes data);
     event LotteryReset();
 
-    uint8 public totalTicketsInGame;
-    uint8[] public arrayWinningTicketsId;
-    mapping(uint8 => bool) private alreadyDrafted;
+    uint public totalTicketsInGame;
+    uint[] public arrayWinningTicketsId;
+    mapping(uint => bool) private alreadyDrafted;
 
     address public owner;
     mapping(address => bool) public authorized;
@@ -79,7 +80,7 @@ contract ChristmasLottery {
         authorized[_addr] = false;
     }
 
-    function buyTicketsOffchainMode(uint8 numberOfTickets, string memory firstName, string memory lastName, string memory studentId)
+    function buyTicketsOffchainMode(uint numberOfTickets, string memory firstName, string memory lastName, string memory studentId)
         external
         // payable
         // Owner can authorize addresses to buy tickets as his dealers
@@ -98,29 +99,31 @@ contract ChristmasLottery {
     }
 
     // Call this function to draw winners
-    function drawWinnersOffChainMode(uint8 numberOfWinners) external onlyOwner returns (uint8[] memory) {
+    function drawWinnersOffChainMode(uint numberOfWinners) external onlyOwner returns (uint[] memory) {
         require(numberOfWinners <= totalTicketsInGame, "More winners than tickets available");
         
-        uint8[] memory winners = new uint8[](numberOfWinners);
-        uint8 draftedCount = 0;
+        uint[] memory winners = new uint[](numberOfWinners);
+        uint draftedCount = 0;
         uint attempts = 0;  // Track attempts to avoid infinite loops
-
-        while (draftedCount < numberOfWinners) {
+        for (uint i = 0; i < totalTicketsInGame; i++) {
+            alreadyDrafted[i] = false;
+        }
+        do {
             if (attempts > DRAFT_LIMIT + totalTicketsInGame) {
                 revert("Too many drafts, not enough unique tickets");
             }
 
-            uint8 winnerIndex = uint8(random() % totalTicketsInGame);
+            uint winnerIndex = uint(random() % totalTicketsInGame);
+            winners[draftedCount++] = winnerIndex;
             if (!alreadyDrafted[winnerIndex]) {
                 winners[draftedCount++] = winnerIndex;
                 alreadyDrafted[winnerIndex] = true;
             }
             attempts++;
-        }
+        } while (draftedCount < numberOfWinners);
         arrayWinningTicketsId = winners;  // Update the global winners array if needed
         return winners;
     }
-
     
     
     // Call this function to retrieve the
@@ -133,11 +136,10 @@ contract ChristmasLottery {
         return allParticipants;
     }
 
-    function random() private view returns (uint8) {
+    function random() private returns (uint) {
         bytes32 hashValue = keccak256(abi.encodePacked(block.prevrandao,
-                                        block.timestamp, number_of_participants));
-        uint8 smallInt = uint8(uint(hashValue));
-        return smallInt;
+                                        block.timestamp, SEED++));
+        return uint(hashValue);
     }
 
     function withdrawFunds() external onlyOwner {
@@ -164,7 +166,7 @@ contract ChristmasLottery {
         }
     }
 
-    function addRange(uint8 _start, uint8 _end, string memory _student_id) private {
+    function addRange(uint _start, uint _end, string memory _student_id) private {
         require(_start <= _end, "Invalid range: start must be less than or equal to end");
         // mapping (string => mapping (uint8 => Range)) private participants_ranges;
         Range[] memory current_participant_ranges = participants_ranges[_student_id];
@@ -176,13 +178,13 @@ contract ChristmasLottery {
         participants_ranges[_student_id].push(Range(_start, _end));
     }
 
-    function getCurrentWinningID() onlyAuthorized public view returns (uint8[] memory) {
+    function getCurrentWinningID() onlyAuthorized public view returns (uint[] memory) {
         return arrayWinningTicketsId;
     }
     function getParticipantCredentials(string memory _studentId) view  onlyAuthorized public returns (Participant_fast memory) {
         return participants_credentials[_studentId];
     }
-    function findParticipantByTicket(uint8 ticketNumber) onlyAuthorized public view returns (Participant_fast memory) {
+    function findParticipantByTicket(uint ticketNumber) onlyAuthorized public view returns (Participant_fast memory) {
         for (uint8 i = 0; i < participants_list.length; i++) {
             string memory studentId = participants_list[i];
             Range[] memory ranges = participants_ranges[studentId];
