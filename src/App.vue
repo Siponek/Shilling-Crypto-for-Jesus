@@ -1,85 +1,51 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+    import { RouterView } from 'vue-router'
+    import SideBar from './components/sidebar/SidebarComp.vue'
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+    <v-app class="rounded rounded-md bg-yellow" full-height>
+        <v-app-bar clipped-right
+            ><v-app-bar-title
+                >Christmass Lottery Contract
+            </v-app-bar-title></v-app-bar
+        >
+        <SideBar />
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+        <v-main
+            style="background: lightcoral"
+            class="bg-green"
+        >
+            <v-container style="background: lightblue">
+                <router-view />
+            </v-container>
+        </v-main>
+        <v-footer
+            class="bg-indigo-lighten-1 text-center d-flex flex-column"
+        >
+            <div></div>
 
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
+            <div class="pt-0">
+                Phasellus feugiat arcu sapien, et iaculis ipsum
+                elementum sit amet. Mauris cursus commodo
+                interdum. Praesent ut risus eget metus luctus
+                accumsan id ultrices nunc. Sed at orci sed
+                massa consectetur dignissim a sit amet dui.
+                Duis commodo vitae velit et faucibus. Morbi
+                vehicula lacinia malesuada. Nulla placerat
+                augue vel ipsum ultrices, cursus iaculis dui
+                sollicitudin. Vestibulum eu ipsum vel diam
+                elementum tempor vel ut orci. Orci varius
+                natoque penatibus et magnis dis parturient
+                montes, nascetur ridiculus mus.
+            </div>
 
-  <RouterView />
+            <v-divider></v-divider>
+
+            <div>
+                {{ new Date().getFullYear() }} —
+                <strong>Vuetify</strong>
+            </div>
+        </v-footer>
+    </v-app>
 </template>
-
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
-}
-</style>
