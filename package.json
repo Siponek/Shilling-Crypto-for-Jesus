@@ -17,11 +17,15 @@
     "dependencies": {
         "@fortawesome/fontawesome-free": "^6.5.2",
         "@mdi/font": "^7.4.47",
-        "ethers": "^6.12.1",
+        "@web3-onboard/core": "^2.21.6",
+        "@web3-onboard/injected-wallets": "^2.10.17",
+        "@web3-onboard/transaction-preview": "^2.0.9",
+        "@web3-onboard/vue": "^2.7.16",
         "pinia": "^2.1.7",
         "vue": "^3.4.27",
         "vue-router": "^4.3.2",
-        "vuetify": "3.6.7"
+        "vuetify": "3.6.7",
+        "web3": "^4.9.0"
     },
     "devDependencies": {
         "@playwright/test": "^1.44.1",
