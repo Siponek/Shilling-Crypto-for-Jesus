@@ -32,7 +32,7 @@
                 Disconnect wallet</v-btn
             >
         </v-container>
-        <transition name="fade" mode="out-in">
+        <transition>
             <v-card
                 v-if="web3Store.connected"
                 title="Hello there, this is your balance"
@@ -50,14 +50,15 @@
         <div v-if="!web3Store.connected">
             Connect to MetaMask to interact with the contract
         </div>
-        <transition name="fade" mode="out-in">
+
+        <Transition :duration="900" name="nested">
             <v-container
                 v-if="web3Store.connected"
                 class="abi"
             >
                 <AbiInterface />
             </v-container>
-        </transition>
+        </Transition>
     </v-container>
 </template>
 
@@ -94,12 +95,34 @@
         border-radius: 5px;
     }
 
-    .fade-enter-active,
-    .fade-leave-active {
-        transition: opacity 0.5s;
+    .nested-enter-active,
+    .nested-leave-active {
+        transition: all 0.3s ease-in-out;
     }
-    .fade-enter,
-    .fade-leave-active {
+    /* delay leave of parent element */
+    .nested-leave-active {
+        transition-delay: 0.25s;
+    }
+
+    .nested-enter-from,
+    .nested-leave-to {
+        transform: translateY(30px);
         opacity: 0;
+    }
+
+    /* we can also transition nested elements using nested selectors */
+    .nested-enter-active .inner,
+    .nested-leave-active .inner {
+        transition: all 0.3s ease-in-out;
+    }
+    /* delay enter of nested element */
+    .nested-enter-active .inner {
+        transition-delay: 0.25s;
+    }
+
+    .nested-enter-from .inner,
+    .nested-leave-to .inner {
+        transform: translateX(30px);
+        opacity: 0.001;
     }
 </style>
