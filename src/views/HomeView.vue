@@ -1,124 +1,105 @@
 <script setup lang="ts">
-    import { ethers } from 'ethers'
-    import { ref, onMounted } from 'vue'
-    const abi = JSON.parse(import.meta.env.VITE_CONTRACT_ABI)
-    // const provider = ref<Provider | null>(null)
-    declare global {
-        interface Window {
-            // ethereum?: Provider
-            ethereum?: ethers.Eip1193Provider
-        }
-    }
+    import { useWeb3Store } from '@/stores/web3store_pinia'
+    import AbiInterface from '@/components/smartContract/AbiInterface.vue'
+    import MetamaskBtn from '@/components/smartContract/MetamaskBtn.vue'
+    import { computed } from 'vue'
+    const web3Store = useWeb3Store()
 
-    declare module 'ethers' {
-        interface BrowserProvider {
-            getSigner(): ethers.JsonRpcSigner
-        }
-    }
-    const contractAddress: string =
-        '0x3745724986BcF75B597a54e61ACF1ec4415561Af'
-    const abiJson = abi as unknown as ethers.InterfaceAbi
-    const contract = ref<ethers.Contract | null>(null)
-    const balance = ref<string>('')
-    const signer = ref<
-        | ethers.JsonRpcSigner
-        | ethers.ContractRunner
-        | null
-        | undefined
-    >(null)
-    const provider = ref<
-        // | ethers.AbstractProvider
-        | ethers.BrowserProvider
-        // | ethers.Eip1193Provider
-        // | ethers.JsonRpcSigner
-        | null
-    >(null)
-
-    const warningMessage = ref<string>('')
-    const accounts = ref([])
-    const connected = ref(false)
-
-    async function initEthers() {
-        if (!window.ethereum) {
-            console.error(
-                'MetaMask is not installed! Using read-only defaults'
-            )
-            warningMessage.value =
-                'Failed to initialize provider.'
-            return
-        } else {
-            provider.value = new ethers.BrowserProvider(
-                window.ethereum
-            )
-            signer.value = provider.value
-        }
-        // Ensure the provider has been initialized correctly before continuing
-        if (!provider.value) {
-            console.error('Provider initialization failed')
-            return
-        }
-        signer.value = await provider.value.getSigner()
-        accounts.value = await provider.value.send(
-            'eth_requestAccounts',
-            []
-        )
-        connected.value = true
-        contract.value = new ethers.Contract(
-            contractAddress,
-            abiJson,
-            signer.value
-        )
-
-        fetchBalance()
-    }
-
-    async function fetchBalance() {
-        if (!contract.value) {
-            console.error('Contract not initialized')
-            return
-        }
-
-        try {
-            const userAddress = 'user_address_here' // Replace with actual user address
-            const result =
-                await contract.value.balanceOf(userAddress)
-            balance.value = ethers.formatEther(result)
-        } catch (error) {
-            console.error('Error fetching balance:', error)
-        }
-    }
-
-    onMounted(initEthers)
+    const tate_status = computed(() => {
+        return parseFloat(web3Store.balance) < 1
+            ? '...You are poor!'
+            : '...You are rich!'
+    })
 </script>
 
 <template>
-    <v-container fluid class="main-content">
-        <div v-if="warningMessage" class="warning-box">
-            {{ warningMessage }}
+    <v-container class="main-content">
+        <v-alert
+            v-if="web3Store.warningMessage"
+            :text="web3Store.warningMessage"
+            type="error"
+            dense
+            prominent
+            dismissible
+            class="warning-box"
+            role="alert"
+            elevation="12"
+        >
+        </v-alert>
+        <v-container class="metamask-class">
+            <MetamaskBtn v-if="!web3Store.connected" />
+            <v-btn v-else @click="web3Store.resetWeb3">
+                Disconnect wallet</v-btn
+            >
+        </v-container>
+        <transition name="fade" mode="out-in">
+            <v-card
+                v-if="web3Store.connected"
+                title="Hello there, this is your balance"
+                :subtitle="tate_status"
+                elevated
+                min-width="40vw"
+            >
+                <v-card-text>{{
+                    web3Store.balance
+                        ? web3Store.balance
+                        : 'YOU GOT NOTHING'
+                }}</v-card-text>
+            </v-card>
+        </transition>
+        <div v-if="!web3Store.connected">
+            Connect to MetaMask to interact with the contract
         </div>
-        <div class="balance-box">Hello there</div>
-        <button @click="fetchBalance">Check Balance</button>
-        <p>Balance: {{ balance }}</p>
+        <transition name="fade" mode="out-in">
+            <v-container
+                v-if="web3Store.connected"
+                class="abi"
+            >
+                <AbiInterface />
+            </v-container>
+        </transition>
     </v-container>
 </template>
 
 <style scoped>
+    .metamask-class {
+        margin-top: 20px;
+        max-width: min-content;
+    }
+
+    .abi {
+        margin-top: 20px;
+        max-width: min-content;
+    }
+
     .main-content {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        min-height: 100vh;
+        min-height: 50vh;
     }
 
     .balance-box {
-        background-color: green;
+        background-color: rgb(18, 130, 199);
         width: 100%;
         height: 300px;
-        display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
         font-size: 24px;
+    }
+    .warning-box {
+        padding: 10px;
+        margin: 10px;
+        border-radius: 5px;
+    }
+
+    .fade-enter-active,
+    .fade-leave-active {
+        transition: opacity 0.5s;
+    }
+    .fade-enter,
+    .fade-leave-active {
+        opacity: 0;
     }
 </style>

@@ -39,27 +39,33 @@ export const useWeb3Store = defineStore('web3', {
         async initWeb3() {
             const wallets = await onboard.connectWallet()
             if (wallets.length > 0) {
-                this.web3 = new Web3(wallets[0].provider)
+                const { provider } = wallets[0]
+                this.web3 = new Web3(provider)
                 this.accounts = (
                     await this.web3.eth.getAccounts()
                 )[0]
+
+                this.connected = true
+                // this.web3 = new Web3(wallets[0].provider)
+                // this.accounts = (
+                //     await this.web3.eth.getAccounts()
+                // )[0]
             } else {
                 this.warningMessage =
-                    'Please connect to a wallet.'
+                    'Please connect to a wallet'
                 return
             }
             await this.fetchABI()
             await this.loadContract()
             await this.fetchBalance()
-            this.connected = true
         },
         async loadContract() {
             if (!this.abi) {
-                this.warningMessage = 'ABI is not set.'
+                this.warningMessage = 'ABI is not set'
                 return
             }
             if (!this.web3) {
-                this.warningMessage = 'Web3 is not set.'
+                this.warningMessage = 'Web3 is not set'
                 return
             }
             this.contract = new this.web3.eth.Contract(
@@ -106,9 +112,22 @@ export const useWeb3Store = defineStore('web3', {
             } catch (error) {
                 console.error('Error fetching the ABI:', error)
                 this.warningMessage =
-                    'Error fetching the ABI. See console for details.'
+                    'Error fetching the ABI. See console for details'
                 throw error
             }
+        },
+        async resetWeb3() {
+            console.log('resetting web3')
+            const [primaryWallet] = onboard.state.get().wallets
+            await onboard.disconnectWallet({
+                label: primaryWallet.label
+            })
+            this.web3 = null
+            this.accounts = ''
+            this.contract = null
+            this.balance = ''
+            this.connected = false
+            this.warningMessage = ''
         }
     }
 })
