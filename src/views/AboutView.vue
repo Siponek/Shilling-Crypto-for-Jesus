@@ -1,7 +1,8 @@
 <template>
-    <div class="about">
+    <v-container class="about">
         <h1>This is an about page</h1>
-    </div>
+        <h2>Work in progress</h2>
+    </v-container>
 </template>
 
 <style>
@@ -9,7 +10,8 @@
         .about {
             min-height: 100vh;
             display: flex;
-            align-items: center;
+            /* align-items: center; */
+            flex-direction: column;
             background-color: gray;
         }
     }

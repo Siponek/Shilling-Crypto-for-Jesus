@@ -1,5 +1,3 @@
-// import './assets/main.css'
-
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { createVuetify } from 'vuetify'
@@ -24,6 +22,7 @@ const vuetify = createVuetify({
             mdi
         }
     },
+
     components,
     directives,
     theme: {
@@ -32,6 +31,7 @@ const vuetify = createVuetify({
 })
 
 app.use(pinia)
+app.use(vuetify)
 app.use(router)
 app.use(vuetify)
 

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import Web3, { type AbiStruct, type ContractAbi } from 'web3'
+import Web3, { type ContractAbi } from 'web3'
 import { init } from '@web3-onboard/vue'
 import injectedModule from '@web3-onboard/injected-wallets'
 
@@ -26,7 +26,7 @@ const onboard = init({
 export const useWeb3Store = defineStore('web3', {
     state: () => ({
         web3: null as Web3 | null,
-        accounts: '',
+        account: '',
         contract: null as any,
         balance: '',
         connected: false,
@@ -41,15 +41,11 @@ export const useWeb3Store = defineStore('web3', {
             if (wallets.length > 0) {
                 const { provider } = wallets[0]
                 this.web3 = new Web3(provider)
-                this.accounts = (
+                this.account = (
                     await this.web3.eth.getAccounts()
                 )[0]
 
                 this.connected = true
-                // this.web3 = new Web3(wallets[0].provider)
-                // this.accounts = (
-                //     await this.web3.eth.getAccounts()
-                // )[0]
             } else {
                 this.warningMessage =
                     'Please connect to a wallet'
@@ -58,6 +54,8 @@ export const useWeb3Store = defineStore('web3', {
             await this.fetchABI()
             await this.loadContract()
             await this.fetchBalance()
+            console.log('web3:', this.account)
+            this.warningMessage = ''
         },
         async loadContract() {
             if (!this.abi) {
@@ -74,9 +72,9 @@ export const useWeb3Store = defineStore('web3', {
             )
         },
         async fetchBalance() {
-            if (!this.web3 || !this.accounts) return
+            if (!this.web3 || !this.account) return
             this.balance = this.web3.utils.fromWei(
-                await this.web3.eth.getBalance(this.accounts),
+                await this.web3.eth.getBalance(this.account),
                 'ether'
             )
         },
@@ -123,7 +121,7 @@ export const useWeb3Store = defineStore('web3', {
                 label: primaryWallet.label
             })
             this.web3 = null
-            this.accounts = ''
+            this.account = ''
             this.contract = null
             this.balance = ''
             this.connected = false
