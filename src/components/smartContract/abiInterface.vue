@@ -1,15 +1,11 @@
 <template>
-    <v-card
-        title="Contract Address"
-        :text="web3Store.contractAddress"
-        min-width="40vw"
-        v-if="web3Store.contractAddress"
-    >
-    </v-card>
-
     <div>
-        <v-card class="form-class">
-            <v-form>
+        <v-card class="form-class" min-width="25vw">
+            <v-form
+                v-if="
+                    true //change to owner == current user
+                "
+            >
                 <v-text-field
                     v-model="authAddress"
                     :rules="rules"
@@ -54,7 +50,7 @@
                 <v-row justify="end">
                     <v-btn
                         class="my-2 mx-2"
-                        @click="authorizeAddress"
+                        @click="buyTickets"
                         >Buy tickets</v-btn
                     >
                 </v-row>
@@ -65,39 +61,24 @@
 
 <script setup lang="js">
     import { ref } from 'vue'
-    import { useWeb3Store } from '@/stores/web3store_pinia'
+    import { useWeb3Store } from '@/stores/web3Store_pinia'
+    import { useContractStore } from '@/stores/contractStore_pinia'
 
     const web3Store = useWeb3Store()
+    const contractStore = useContractStore()
     const authAddress = ref('')
     const ticketCount = ref(0)
     const firstName = ref('')
     const lastName = ref('')
     const studentId = ref('')
     const rules = [v => !!v || 'Field is required']
-    function authorizeAddress() {
-        if (contract.value && authAddress.value) {
-            contract.value
-                .authorizeAddress(authAddress.value)
-                .then(response => {
-                    console.log(
-                        'Transaction successful:',
-                        response
-                    )
-                })
-                .catch(error => {
-                    console.error('Transaction failed:', error)
-                })
-        }
-    }
 
-    function buyTickets() {
-        if (contract.value) {
-            contract.value
-                .buyTicketsOffchainMode(
-                    ticketCount.value,
-                    firstName.value,
-                    lastName.value,
-                    studentId.value
+    function authorizeAddress() {
+        if (contractStore !== null) {
+            contractStore
+                .authorizeAddress(
+                    web3Store.account,
+                    authAddress.value
                 )
                 .then(response => {
                     console.log(
@@ -108,6 +89,27 @@
                 .catch(error => {
                     console.error('Transaction failed:', error)
                 })
+        } else console.error('Contract not found')
+    }
+
+    async function buyTickets() {
+        if (contractStore !== null) {
+            console.log(
+                'Buying tickets:',
+                ticketCount.value,
+                firstName.value,
+                lastName.value,
+                studentId.value
+            )
+            await contractStore.buyTickets(
+                web3Store.account,
+                ticketCount.value,
+                firstName.value,
+                lastName.value,
+                studentId.value
+            )
+        } else {
+            console.error('Contract not found')
         }
     }
 </script>
