@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { Contract, type Address } from 'web3'
+import { toRaw } from 'vue'
 
 interface Range {
     start: number
@@ -11,12 +12,21 @@ interface ParticipantWithRanges {
     ranges: Range[]
 }
 
+interface ParticipantSolidityExport {
+    0: string
+    1: { start: string; end: string }[]
+    studentId: string
+    ranges: { start: number; end: number }[]
+}
+
 export const useContractStore = defineStore('contract_store', {
     state: () => ({
         currentWinningIds: [null] as unknown as number[],
         ownerAddress: '' as string,
         totalTicketsInGame: 0 as number,
-        storeContract: null as Contract<any> | null
+        storeContract: null as Contract<any> | null,
+        currentStudentRanges: [] as ParticipantSolidityExport[]
+        // currentStudentRanges: [] as ParticipantWithRanges[]
     }),
     actions: {
         setCurrentContract(contract: Contract<any>): void {
@@ -181,15 +191,14 @@ export const useContractStore = defineStore('contract_store', {
             }
         },
         async findParticipantByTicketId(
-            ticketId: number
+            ticketId: number,
+            participants: ParticipantWithRanges[]
         ): Promise<ParticipantWithRanges | undefined> {
             if (!this.storeContract) {
                 throw new Error('Contract not set')
             }
 
             try {
-                const participants =
-                    await this.getAllParticipantsRanges()
                 return participants.find(
                     (participant: { ranges: any[] }) =>
                         participant.ranges.some(
@@ -209,29 +218,22 @@ export const useContractStore = defineStore('contract_store', {
                 throw error
             }
         },
-        async getAllParticipantsRanges(): Promise<
-            ParticipantWithRanges[]
-        > {
+        async getAllParticipantsRanges(
+            currentAddress: Address
+        ): Promise<void> {
             if (!this.storeContract)
                 throw new Error('Contract not set')
             try {
                 const result = await this.storeContract.methods
                     .getAllParticipantsRanges()
-                    .call()
+                    .call({ from: currentAddress })
+                const parsedResult =
+                    result as ParticipantSolidityExport[]
+                this.currentStudentRanges = parsedResult
                 console.log(
                     'getAllParticipantsRanges() result:',
-                    result
-                )
-                return (result as any[]).map(
-                    (participant: any) => ({
-                        studentId: participant.studentId,
-                        ranges: participant.ranges.map(
-                            (range: any) => ({
-                                start: range.start,
-                                end: range.end
-                            })
-                        )
-                    })
+                    parsedResult,
+                    this.currentStudentRanges
                 )
             } catch (error) {
                 console.error(
@@ -302,8 +304,38 @@ export const useContractStore = defineStore('contract_store', {
                 throw error
             }
         },
-
+        checkForWinners() {
+            if (this.currentWinningIds.length < 1) {
+                console.error('No winning IDs in the lottery')
+                return
+            }
+            if (this.currentStudentRanges.length < 1) {
+                console.error('No participants in the lottery')
+                return
+            }
+            const winnnersArray = []
+            for (const winningId of this.currentWinningIds) {
+                for (const participant of this
+                    .currentStudentRanges) {
+                    const winner = this.isWinner(
+                        winningId,
+                        participant.ranges
+                    )
+                    if (winner) {
+                        console.log(
+                            `Winner found: ${participant.studentId}`
+                        )
+                        winnnersArray.push({
+                            studentId: participant.studentId,
+                            winningId
+                        })
+                    }
+                }
+            }
+            console.log('Winners:', winnnersArray)
+        },
         isWinner(ticket: number, ranges: Range[]): boolean {
+            // First number in range is inclusive, second is exclusive
             let low = 0
             let high = ranges.length - 1
 

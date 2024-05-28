@@ -8,52 +8,41 @@
             >
                 <v-text-field
                     v-model="authAddress"
-                    :rules="rules"
                     label="Address to authorize"
                     density="comfortable"
                 ></v-text-field>
-                <v-row justify="end">
-                    <v-btn
-                        class="my-2 mx-2"
-                        @click="authorizeAddress"
-                        >Authorize</v-btn
-                    >
-                </v-row>
+                <v-btn
+                    class="my-2 mx-2"
+                    @click="authorizeAddress"
+                    >Authorize</v-btn
+                >
             </v-form>
         </v-card>
         <v-card class="form-class">
             <v-form @submit.prevent>
                 <v-text-field
                     v-model="ticketCount"
-                    :rules="rules"
                     label="Number of tickets"
                     density="comfortable"
                 ></v-text-field>
                 <v-text-field
                     v-model="firstName"
-                    :rules="rules"
                     label="First name"
                     density="comfortable"
                 ></v-text-field>
                 <v-text-field
                     v-model="lastName"
-                    :rules="rules"
                     label="Last name"
                     density="comfortable"
                 ></v-text-field>
                 <v-text-field
                     v-model="studentId"
-                    :rules="rules"
                     label="Student ID"
                     density="comfortable"
                 ></v-text-field>
-                <v-row justify="end">
-                    <v-btn
-                        class="my-2 mx-2"
-                        @click="buyTickets"
-                        >Buy tickets</v-btn
-                    >
-                </v-row>
+                <v-btn class="my-2 mx-2" @click="buyTickets"
+                    >Buy tickets</v-btn
+                >
             </v-form>
         </v-card>
     </div>

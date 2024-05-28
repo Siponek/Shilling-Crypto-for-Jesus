@@ -4,11 +4,7 @@
 </script>
 
 <template>
-    <v-app
-        class="rounded rounded-md"
-        style="background: lightblue"
-        full-height
-    >
+    <v-app class="rounded rounded-md" full-height>
         <v-app-bar clipped-right
             ><v-app-bar-title
                 >Christmass Lottery Contract
@@ -16,13 +12,17 @@
         >
         <SideBar />
 
-        <v-main min-width="960px">
+        <v-main
+            min-width="960px"
+            min-height="880px"
+            class="color-discreet-bullet"
+        >
             <v-container>
                 <router-view />
             </v-container>
         </v-main>
         <v-footer
-            class="bg-indigo-lighten-1 text-center d-lg-flex flex-column"
+            class="bg-blue-grey-darken-2 text-center d-lg-flex flex-column"
         >
             <div class="pt-0">
                 Lorem ipsum dolor sit amet consectetur

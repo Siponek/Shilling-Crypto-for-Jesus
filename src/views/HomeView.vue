@@ -14,60 +14,92 @@
 </script>
 
 <template>
-    <v-container class="top-content">
-        <v-card
-            title="Contract Address"
-            class="color-black p-1"
-            max-width="50vw"
-        >
-            <v-container>
-                <v-card
-                    :text="web3Store.contractAddress"
-                    v-if="web3Store.contractAddress"
-                >
-                    <v-container class="metamask-class">
-                        <MetamaskBtn
-                            v-if="!web3Store.connected"
-                        />
-                        <v-btn
-                            v-else
-                            @click="web3Store.resetWeb3"
-                        >
-                            Disconnect wallet</v-btn
-                        >
-                    </v-container>
-                    <v-container
-                        v-if="!web3Store.connected"
-                        class="d-flex justify-center flex-sm-column align-center"
-                    >
-                        <v-alert
-                            v-if="web3Store.warningMessage"
-                            :text="web3Store.warningMessage"
-                            type="error"
-                            dense
-                            prominent
-                            dismissible
-                            class="my-2"
-                            role="alert"
-                            elevation="12"
-                            min-height="50px"
-                            max-width="20vw"
-                        >
-                        </v-alert>
-
-                        <div v-if="!web3Store.connected">
-                            Connect to MetaMask to interact
-                            with the contract
-                        </div>
-                    </v-container>
-                </v-card>
-            </v-container>
-        </v-card>
-    </v-container>
-
     <v-row no-gutters>
-        <Transition :duration="900" name="nested">
-            <v-col :cols="web3Store.connected ? 6 : 12">
+        <Transition :duration="1200">
+            <v-col
+                :class="{
+                    'col-connected': web3Store.connected,
+                    'col-disconnected': !web3Store.connected
+                }"
+            >
+                <v-container class="top-content">
+                    <v-card
+                        title="Contract Address"
+                        class="color-black p-1"
+                        max-width="50vw"
+                    >
+                        <v-container>
+                            <v-card
+                                :text="
+                                    web3Store.contractAddress
+                                "
+                                v-if="
+                                    web3Store.contractAddress
+                                "
+                            >
+                                <v-container
+                                    class="metamask-class"
+                                >
+                                    <MetamaskBtn
+                                        v-if="
+                                            !web3Store.connected
+                                        "
+                                    />
+                                    <v-btn
+                                        v-else
+                                        @click="
+                                            web3Store.resetWeb3
+                                        "
+                                    >
+                                        Disconnect
+                                        wallet</v-btn
+                                    >
+                                </v-container>
+                                <v-container
+                                    v-if="!web3Store.connected"
+                                    class="d-flex justify-center flex-sm-column align-center"
+                                >
+                                    <v-alert
+                                        v-if="
+                                            web3Store.warningMessage
+                                        "
+                                        :text="
+                                            web3Store.warningMessage
+                                        "
+                                        type="error"
+                                        dense
+                                        prominent
+                                        dismissible
+                                        class="my-2"
+                                        role="alert"
+                                        elevation="12"
+                                        min-height="50px"
+                                        max-width="20vw"
+                                    >
+                                    </v-alert>
+
+                                    <div
+                                        v-if="
+                                            !web3Store.connected
+                                        "
+                                    >
+                                        Connect to MetaMask to
+                                        interact with the
+                                        contract
+                                    </div>
+                                </v-container>
+                            </v-card>
+                        </v-container>
+                    </v-card>
+                </v-container>
+            </v-col>
+        </Transition>
+
+        <Transition :duration="1200">
+            <v-col
+                v-if="web3Store.connected"
+                :cols="web3Store.connected ? 4 : 12"
+            >
                 <v-container class="main-content">
                     <v-card
                         v-if="web3Store.connected"
@@ -96,8 +128,8 @@
                 </v-container>
             </v-col>
         </Transition>
-        <Transition :duration="900" name="nested">
-            <v-col v-if="web3Store.connected" cols="6">
+        <Transition :duration="1200">
+            <v-col v-if="web3Store.connected" cols="4">
                 <v-container class="lottery-content">
                     <v-card
                         title="Lottery Interface"
@@ -113,6 +145,42 @@
         </Transition>
     </v-row>
 </template>
+
+<style>
+    .my-theme-btn-class {
+        background-color: red !important;
+    }
+</style>
+
+<style scoped>
+    .v-enter-active,
+    .v-leave-active {
+        transition:
+            transform 1.2s ease-in-out,
+            flex-basis 1.2s ease-in-out,
+            opacity 1.2s ease-in-out;
+        width: 100%; /* Match the width to avoid layout shift */
+    }
+
+    .v-enter-from,
+    .v-leave-to {
+        opacity: 0;
+        transform: translateX(100%); /* Move to the right */
+    }
+
+    .col-connected,
+    .col-disconnected {
+        transition: flex-basis 0.7s ease-in-out;
+    }
+
+    .col-connected {
+        flex: 0 0 25%; /* Equivalent to cols="3" in a 12-column grid */
+    }
+
+    .col-disconnected {
+        flex: 0 0 100%; /* Equivalent to cols="12" */
+    }
+</style>
 
 <style scoped>
     .metamask-class {
@@ -156,36 +224,5 @@
         padding: 10px;
         margin: 10px;
         border-radius: 5px;
-    }
-
-    .nested-enter-active,
-    .nested-leave-active {
-        transition: all 0.3s ease-in-out;
-    }
-    /* delay leave of parent element */
-    .nested-leave-active {
-        transition-delay: 0.25s;
-    }
-
-    .nested-enter-from,
-    .nested-leave-to {
-        transform: translateY(30px);
-        opacity: 0;
-    }
-
-    /* we can also transition nested elements using nested selectors */
-    .nested-enter-active .inner,
-    .nested-leave-active .inner {
-        transition: all 0.3s ease-in-out;
-    }
-    /* delay enter of nested element */
-    .nested-enter-active .inner {
-        transition-delay: 0.25s;
-    }
-
-    .nested-enter-from .inner,
-    .nested-leave-to .inner {
-        transform: translateX(30px);
-        opacity: 0.001;
     }
 </style>

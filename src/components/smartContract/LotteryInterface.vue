@@ -14,8 +14,8 @@
             <v-list rounded="sm">
                 <v-list-item>
                     <v-card
-                        border="double lg info "
-                        class="mx-auto"
+                        border="double lg opacity-100"
+                        class="mx-auto ml-2"
                         max-width="360"
                         rounded="sm"
                         variant="text"
@@ -34,8 +34,8 @@
                 </v-list-item>
                 <v-list-item>
                     <v-card
-                        border="double lg info "
-                        class="mx-auto"
+                        border="double lg  opacity-100"
+                        class="mx-auto ml-2"
                         max-width="360"
                         rounded="sm"
                         variant="text"
@@ -56,8 +56,8 @@
                 </v-list-item>
                 <v-list-item>
                     <v-card
-                        border="double lg info "
-                        class="mx-auto"
+                        border="double lg opacity-100"
+                        class="mx-auto ml-2"
                         max-width="360"
                         rounded="sm"
                         variant="text"
@@ -77,12 +77,16 @@
                                 web3Store.account
                             )
                         "
-                        >Get winning ids</v-btn
+                        >Get winning tickets</v-btn
+                    >
+                    <v-btn
+                        class="my-2 mx-2"
+                        @click="getWinnersRanges()"
+                        >Get the winners</v-btn
                     >
                 </v-list-item>
                 <v-list-item>
                     <v-text-field
-                        :rules="rules"
                         hide-details="auto"
                         label="Amount of tickets to draw"
                         v-model="winnersNumer"
@@ -108,12 +112,26 @@
 <script setup>
     import { useWeb3Store } from '@/stores/web3Store_pinia'
     import { useContractStore } from '@/stores/contractStore_pinia'
-    import { ref } from 'vue'
+    import { ref, toRaw } from 'vue'
 
     const web3Store = useWeb3Store()
     const contractStore = useContractStore()
-
     const winnersNumer = ref(0)
+    async function getWinnersRanges() {
+        if (contractStore === null) {
+            console.error('Contract store is null')
+            return
+        }
+
+        await contractStore.getAllParticipantsRanges(
+            web3Store.account
+        )
+        console.log(
+            'Current student ranges:',
+            toRaw(contractStore.currentStudentRanges)
+        )
+        contractStore.checkForWinners()
+    }
 
     function drawWinners() {
         if (
