@@ -1,14 +1,52 @@
 <template>
-    <v-container>
-        <v-card class="my-2">
+    <v-dialog v-model="isWinnersModalOpen" max-width="600px">
+        <v-card
+            title="
+            Lottery Winners"
+        >
             <v-card-text>
-                Niemieckie fury, zegarki szwacaria, Ja mówię to
-                co chce, Wy kurwy w kagańcach
+                <v-list>
+                    <v-list-item
+                        v-for="(
+                            winner, index
+                        ) in contractStore.currentWinnersArray"
+                        :key="index"
+                    >
+                        <v-list-item-title
+                            >Student ID:
+                            {{
+                                winner.studentId
+                            }}</v-list-item-title
+                        >
+                        <v-list-item-subtitle
+                            >Winning Ticket ID:
+                            {{
+                                winner.winningId
+                            }}</v-list-item-subtitle
+                        >
+                    </v-list-item>
+                </v-list>
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                    color="red darken-1"
+                    text
+                    @click="isWinnersModalOpen = false"
+                    >Close</v-btn
+                >
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+    <v-container>
+        <v-card>
+            <v-card-text>
                 {{
                     contractStore.ownerAddress ==
                     web3Store.account
                         ? 'You are the owner of the contract'
-                        : 'You are not the owner of the contract'
+                        : 'It seems that you are not the owner of the contract.\
+                        Get the owner of the contract to verify it'
                 }}
             </v-card-text>
             <v-list rounded="sm">
@@ -19,10 +57,9 @@
                         max-width="360"
                         rounded="sm"
                         variant="text"
+                        :text="contractStore.ownerAddress"
+                        title="Contract owner"
                     >
-                        <v-card-text>
-                            {{ contractStore.ownerAddress }}
-                        </v-card-text>
                     </v-card>
                     <v-btn
                         class="my-2 mx-2"
@@ -39,12 +76,11 @@
                         max-width="360"
                         rounded="sm"
                         variant="text"
+                        :text="
+                            contractStore.totalTicketsInGame
+                        "
+                        title="Total tickets in game"
                     >
-                        <v-card-text>
-                            {{
-                                contractStore.totalTicketsInGame
-                            }}
-                        </v-card-text>
                     </v-card>
                     <v-btn
                         class="my-2 mx-2"
@@ -61,14 +97,13 @@
                         max-width="360"
                         rounded="sm"
                         variant="text"
+                        :text="
+                            contractStore.currentWinningIds.join(
+                                ', '
+                            )
+                        "
+                        title="Current winning tickets"
                     >
-                        <v-card-text>
-                            {{
-                                contractStore.currentWinningIds.join(
-                                    ', '
-                                )
-                            }}
-                        </v-card-text>
                     </v-card>
                     <v-btn
                         class="my-2 mx-2"
@@ -89,7 +124,7 @@
                     <v-text-field
                         hide-details="auto"
                         label="Amount of tickets to draw"
-                        v-model="winnersNumer"
+                        v-model="amountOfTicketsToBeDrawn"
                     ></v-text-field>
                     <v-btn
                         class="my-2 mx-2"
@@ -100,7 +135,11 @@
                 <v-list-item>
                     <v-btn
                         class="my-2 mx-2"
-                        @click="contractStore.resetLottery()"
+                        @click="
+                            contractStore.resetLottery(
+                                web3Store.account
+                            )
+                        "
                         >Reset the lottery!</v-btn
                     >
                 </v-list-item>
@@ -112,31 +151,38 @@
 <script setup>
     import { useWeb3Store } from '@/stores/web3Store_pinia'
     import { useContractStore } from '@/stores/contractStore_pinia'
-    import { ref, toRaw } from 'vue'
+    import { ref } from 'vue'
 
     const web3Store = useWeb3Store()
     const contractStore = useContractStore()
-    const winnersNumer = ref(0)
+    const amountOfTicketsToBeDrawn = ref(0)
+    const isWinnersModalOpen = ref(false)
+
     async function getWinnersRanges() {
         if (contractStore === null) {
             console.error('Contract store is null')
+            return
+        }
+        if (
+            contractStore.currentWinningIds.length < 1 ||
+            contractStore.currentWinningIds[0] === null
+        ) {
+            console.error(
+                'No acces to winning ids. Get the winning tickets first'
+            )
             return
         }
 
         await contractStore.getAllParticipantsRanges(
             web3Store.account
         )
-        console.log(
-            'Current student ranges:',
-            toRaw(contractStore.currentStudentRanges)
-        )
         contractStore.checkForWinners()
+        isWinnersModalOpen.value = true
     }
-
     function drawWinners() {
         if (
-            winnersNumer.value < 1 ||
-            winnersNumer.value > 10
+            amountOfTicketsToBeDrawn.value < 1 ||
+            amountOfTicketsToBeDrawn.value > 10
         ) {
             console.error(
                 'Invalid number of winners specified'
@@ -149,7 +195,7 @@
         }
         contractStore.drawWinners(
             web3Store.account,
-            winnersNumer.value
+            amountOfTicketsToBeDrawn.value
         )
     }
 </script>
