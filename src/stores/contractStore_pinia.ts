@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { Contract, type Address } from 'web3'
-import { toRaw } from 'vue'
 
 interface Range {
     start: number
@@ -21,11 +20,16 @@ interface ParticipantSolidityExport {
 
 export const useContractStore = defineStore('contract_store', {
     state: () => ({
-        currentWinningIds: [null] as unknown as number[],
+        currentWinningIds: [] as unknown as number[],
         ownerAddress: '' as string,
         totalTicketsInGame: 0 as number,
         storeContract: null as Contract<any> | null,
-        currentStudentRanges: [] as ParticipantSolidityExport[]
+        currentStudentRanges:
+            [] as ParticipantSolidityExport[],
+        currentWinnersArray: [] as unknown as {
+            studentId: string
+            winningId: number
+        }[]
         // currentStudentRanges: [] as ParticipantWithRanges[]
     }),
     actions: {
@@ -230,11 +234,6 @@ export const useContractStore = defineStore('contract_store', {
                 const parsedResult =
                     result as ParticipantSolidityExport[]
                 this.currentStudentRanges = parsedResult
-                console.log(
-                    'getAllParticipantsRanges() result:',
-                    parsedResult,
-                    this.currentStudentRanges
-                )
             } catch (error) {
                 console.error(
                     'Error fetching participants and ranges:',
@@ -291,13 +290,15 @@ export const useContractStore = defineStore('contract_store', {
             }
         },
 
-        async resetLottery(): Promise<void> {
+        async resetLottery(
+            currentAddress: Address
+        ): Promise<void> {
             if (!this.storeContract)
                 throw new Error('Contract not set')
             try {
                 const result = await this.storeContract.methods
                     .resetLottery()
-                    .call()
+                    .send({ from: currentAddress })
                 console.log('resetLottery() result:', result)
             } catch (error) {
                 console.error('Error reseting lottery:', error)
@@ -315,6 +316,7 @@ export const useContractStore = defineStore('contract_store', {
             }
             const winnnersArray = []
             for (const winningId of this.currentWinningIds) {
+                console.log('Checking for winner:', winningId)
                 for (const participant of this
                     .currentStudentRanges) {
                     const winner = this.isWinner(
@@ -322,9 +324,6 @@ export const useContractStore = defineStore('contract_store', {
                         participant.ranges
                     )
                     if (winner) {
-                        console.log(
-                            `Winner found: ${participant.studentId}`
-                        )
                         winnnersArray.push({
                             studentId: participant.studentId,
                             winningId
@@ -332,23 +331,33 @@ export const useContractStore = defineStore('contract_store', {
                     }
                 }
             }
-            console.log('Winners:', winnnersArray)
+            this.currentWinnersArray = winnnersArray
         },
         isWinner(ticket: number, ranges: Range[]): boolean {
             // First number in range is inclusive, second is exclusive
-            let low = 0
-            let high = ranges.length - 1
-
-            while (low <= high) {
-                const mid = Math.floor((low + high) / 2)
-                if (ticket < ranges[mid].start) {
-                    high = mid - 1
-                } else if (ticket > ranges[mid].end) {
-                    low = mid + 1
-                } else {
-                    return true
+            let lo = 0
+            // -1 because the last number is exclusive
+            let hi = ranges.length - 1
+            do {
+                const mid = Math.floor(lo + (lo + hi) / 2)
+                if (mid >= ranges.length) {
+                    console.error('Outside of range')
+                    return false
                 }
-            }
+                const v = ranges[mid]
+                if (v.start <= ticket && ticket < v.end) {
+                    return true
+                } else if (ticket < v.start) {
+                    hi = mid
+                } else if (ticket >= v.end) {
+                    // If the ticket is equal to the end of the range and the next range has this number
+                    // as the start, then the we can move to next range and win at the start of the next range
+                    lo = mid + 1
+                } else {
+                    console.error('Error in binary search')
+                    return false
+                }
+            } while (lo <= hi)
             return false
         }
     }
