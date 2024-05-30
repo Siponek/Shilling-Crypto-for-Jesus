@@ -96,21 +96,15 @@
         </Transition>
 
         <Transition :duration="1200">
-            <v-col
-                v-if="web3Store.connected"
-                :cols="web3Store.connected ? 4 : 12"
-            >
+            <v-col v-if="web3Store.connected" md="4" sm="3">
                 <v-container class="main-content">
                     <v-card
                         v-if="web3Store.connected"
                         class="color-black"
                         elevation="10"
+                        title="Smart Contract Interface"
                     >
-                        <v-card-title
-                            >Smart Contract
-                            Interface</v-card-title
-                        >
-                        <v-container class="abi">
+                        <v-container>
                             <v-card
                                 title="Hello there, this is your balance"
                                 :subtitle="tate_status"
@@ -129,7 +123,7 @@
             </v-col>
         </Transition>
         <Transition :duration="1200">
-            <v-col v-if="web3Store.connected" cols="4">
+            <v-col v-if="web3Store.connected" md="4" sm="3">
                 <v-container class="lottery-content">
                     <v-card
                         title="Lottery Interface"
@@ -174,7 +168,7 @@
     }
 
     .col-connected {
-        flex: 0 0 25%; /* Equivalent to cols="3" in a 12-column grid */
+        flex: 0 0 20% !important; /* Equivalent to cols="3" in a 12-column grid */
     }
 
     .col-disconnected {
@@ -187,11 +181,6 @@
         max-width: min-content;
     }
 
-    .abi {
-        margin-top: 20px;
-        max-width: min-content;
-    }
-
     .top-content {
         display: flex;
         justify-content: space-between;
@@ -200,13 +189,11 @@
     }
 
     .main-content {
-        display: flex;
         flex-direction: column;
         align-items: center;
         min-height: 50vh;
     }
     .lottery-content {
-        display: flex;
         flex-direction: column;
         align-items: center;
         min-height: 50vh;
