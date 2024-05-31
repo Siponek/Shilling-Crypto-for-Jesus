@@ -14,7 +14,7 @@
 </script>
 
 <template>
-    <v-row no-gutters>
+    <v-row no-gutters dense id="main-row">
         <Transition :duration="1200">
             <v-col
                 :class="{
@@ -115,7 +115,6 @@
                                         : 'YOU GOT NOTHING'
                                 }}</v-card-text>
                             </v-card>
-
                             <AbiInterface />
                         </v-container>
                     </v-card>
@@ -168,7 +167,7 @@
     }
 
     .col-connected {
-        flex: 0 0 20% !important; /* Equivalent to cols="3" in a 12-column grid */
+        flex: 0 0 0% !important; /* Equivalent to cols="3" in a 12-column grid */
     }
 
     .col-disconnected {
@@ -177,6 +176,10 @@
 </style>
 
 <style scoped>
+    #main-row,
+    v-row {
+        flex-wrap: nowrap !important;
+    }
     .metamask-class {
         max-width: min-content;
     }

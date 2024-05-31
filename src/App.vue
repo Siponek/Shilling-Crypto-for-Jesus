@@ -16,6 +16,7 @@
             min-width="960px"
             min-height="880px"
             class="color-discreet-bullet"
+            align="center"
         >
             <v-container>
                 <router-view />
@@ -25,7 +26,7 @@
             class="bg-blue-grey-darken-2 text-center d-lg-flex flex-column"
         >
             <div class="pt-0">
-                Lorem ipsum dolor sit amet consectetur
+                Shilling Crypto for Jesus App
             </div>
 
             <v-divider></v-divider>
