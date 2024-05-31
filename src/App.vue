@@ -16,9 +16,8 @@
             min-width="960px"
             min-height="880px"
             class="color-discreet-bullet"
-            align="center"
         >
-            <v-container>
+            <v-container class="mx-10">
                 <router-view />
             </v-container>
         </v-main>

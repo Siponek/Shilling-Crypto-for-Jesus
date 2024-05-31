@@ -1,57 +1,55 @@
 <template>
-    <div>
-        <v-card class="form-class" min-width="25vw">
-            <v-form
-                v-if="
-                    true //change to owner == current user
-                "
+    <v-card class="form-class" min-width="20vw">
+        <v-form
+            v-if="
+                true //change to owner == current user
+            "
+        >
+            <v-text-field
+                v-model="authAddress"
+                label="Address to authorize"
+                density="comfortable"
+                :rules="addressRules"
+            ></v-text-field>
+            <v-btn class="my-2 mx-2" @click="authorizeAddress"
+                >Authorize</v-btn
             >
-                <v-text-field
-                    v-model="authAddress"
-                    label="Address to authorize"
-                    density="comfortable"
-                ></v-text-field>
-                <v-btn
-                    class="my-2 mx-2"
-                    @click="authorizeAddress"
-                    >Authorize</v-btn
-                >
-            </v-form>
-        </v-card>
-        <v-card class="form-class">
-            <v-form @submit.prevent>
-                <v-text-field
-                    v-model="ticketCount"
-                    label="Number of tickets"
-                    density="comfortable"
-                ></v-text-field>
-                <v-text-field
-                    v-model="firstName"
-                    label="First name"
-                    density="comfortable"
-                ></v-text-field>
-                <v-text-field
-                    v-model="lastName"
-                    label="Last name"
-                    density="comfortable"
-                ></v-text-field>
-                <v-text-field
-                    v-model="studentId"
-                    label="Student ID"
-                    density="comfortable"
-                ></v-text-field>
-                <v-btn class="my-2 mx-2" @click="buyTickets"
-                    >Buy tickets</v-btn
-                >
-            </v-form>
-        </v-card>
-    </div>
+        </v-form>
+    </v-card>
+    <v-card class="form-class">
+        <v-form @submit.prevent>
+            <v-text-field
+                v-model="ticketCount"
+                label="Number of tickets"
+                density="comfortable"
+            ></v-text-field>
+            <v-text-field
+                v-model="firstName"
+                label="First name"
+                density="comfortable"
+            ></v-text-field>
+            <v-text-field
+                v-model="lastName"
+                label="Last name"
+                density="comfortable"
+            ></v-text-field>
+            <v-text-field
+                v-model="studentId"
+                label="Student ID"
+                density="comfortable"
+            ></v-text-field>
+            <v-btn class="my-2 mx-2" @click="buyTickets"
+                >Buy tickets</v-btn
+            >
+        </v-form>
+    </v-card>
 </template>
 
 <script setup lang="js">
     import { ref } from 'vue'
     import { useWeb3Store } from '@/stores/web3Store_pinia'
     import { useContractStore } from '@/stores/contractStore_pinia'
+    import web3 from 'web3'
 
     const web3Store = useWeb3Store()
     const contractStore = useContractStore()
@@ -60,7 +58,11 @@
     const firstName = ref('')
     const lastName = ref('')
     const studentId = ref('')
-    const rules = [v => !!v || 'Field is required']
+    const addressRules = ref([
+        v =>
+            web3.utils.isAddress(v) ||
+            'Address must be valid Ethereum address'
+    ])
 
     function authorizeAddress() {
         if (contractStore !== null) {
