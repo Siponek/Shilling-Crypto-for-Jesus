@@ -54,7 +54,6 @@ export const useWeb3Store = defineStore('web3', {
             await this.fetchABI()
             await this.loadContract()
             await this.fetchBalance()
-            console.log('web3:', this.account)
             this.warningMessage = ''
         },
         async loadContract() {
