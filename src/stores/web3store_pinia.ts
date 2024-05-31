@@ -19,7 +19,7 @@ const onboard = init({
     appMetadata: {
         name: 'Smart Lottery',
         icon: logo_url,
-        description: 'Your App Description'
+        description: 'If you had one shot, one opportunity...'
     }
 })
 
