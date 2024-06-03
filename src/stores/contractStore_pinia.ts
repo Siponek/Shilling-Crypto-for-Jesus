@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import type { id } from 'vuetify/locale'
 import { Contract, type Address } from 'web3'
 
 interface Range {
