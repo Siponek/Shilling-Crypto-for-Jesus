@@ -168,7 +168,7 @@
             contractStore.currentWinningIds[0] === null
         ) {
             console.error(
-                'No acces to winning ids. Get the winning tickets first'
+                'No access to winning ids. Get the winning tickets first'
             )
             return
         }
