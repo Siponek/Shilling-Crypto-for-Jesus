@@ -1,5 +1,66 @@
 <template>
-    <v-card class="form-class" min-width="20vw">
+    <v-dialog
+        v-model="isParticipantsWindowOpen"
+        max-width="500px"
+    >
+        <v-card
+            title="
+            Participants info"
+        >
+            <v-card-text>
+                <v-list>
+                    <v-list-item>
+                        <v-list-item-title>
+                            <h4>
+                                Student ID:
+                                {{ studentId }}
+                            </h4>
+                        </v-list-item-title>
+                        <v-list-item-subtitle
+                            v-if="
+                                contractStore
+                                    .currentStudentCredentials
+                                    .firstName &&
+                                contractStore
+                                    .currentStudentCredentials
+                                    .lastName
+                            "
+                        >
+                            First name:
+                            {{
+                                contractStore
+                                    .currentStudentCredentials
+                                    .firstName
+                            }}
+                            Last name :
+
+                            {{
+                                contractStore
+                                    .currentStudentCredentials
+                                    .lastName
+                            }}
+                        </v-list-item-subtitle>
+                        <v-list-item-subtitle v-else>
+                            <h2>
+                                Could not find the data to
+                                match the ID
+                            </h2>
+                        </v-list-item-subtitle>
+                    </v-list-item>
+                </v-list>
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                    color="red darken-1"
+                    text
+                    @click="isParticipantsWindowOpen = false"
+                    >Close</v-btn
+                >
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+    <v-card class="form-class">
         <v-form
             v-if="
                 true //change to owner == current user
@@ -13,6 +74,11 @@
             ></v-text-field>
             <v-btn class="my-2 mx-2" @click="authorizeAddress"
                 >Authorize</v-btn
+            >
+            <v-btn
+                class="my-2 mx-2"
+                @click="authorizeAddress({ deauth: true })"
+                >Deauthorize</v-btn
             >
         </v-form>
     </v-card>
@@ -41,6 +107,11 @@
             <v-btn class="my-2 mx-2" @click="buyTickets"
                 >Buy tickets</v-btn
             >
+            <v-btn
+                class="my-2 mx-2"
+                @click="getParticipantCredentials"
+                >Get credentials for ID</v-btn
+            >
         </v-form>
     </v-card>
 </template>
@@ -64,22 +135,67 @@
             'Address must be valid Ethereum address'
     ])
 
-    function authorizeAddress() {
+    const isParticipantsWindowOpen = ref(false)
+
+    async function getParticipantCredentials() {
         if (contractStore !== null) {
-            contractStore
-                .authorizeAddress(
-                    web3Store.account,
-                    authAddress.value
-                )
-                .then(response => {
-                    console.log(
-                        'Transaction successful:',
-                        response
+            console.log(
+                'Getting credentials for ID:',
+                studentId.value
+            )
+            await contractStore.getParticipantCredentials(
+                web3Store.account,
+                studentId.value
+            )
+            isParticipantsWindowOpen.value = true
+        } else {
+            console.error('ID not found')
+        }
+    }
+
+    function authorizeAddress(deauth = false) {
+        if (contractStore !== null) {
+            console.log(
+                deauth ? 'Deauthorizing' : 'Authorizing',
+                authAddress.value
+            )
+            if (deauth === true) {
+                contractStore
+                    .deauthorizeAddress(
+                        web3Store.account,
+                        authAddress.value
                     )
-                })
-                .catch(error => {
-                    console.error('Transaction failed:', error)
-                })
+                    .then(response => {
+                        console.log(
+                            'Transaction successful:',
+                            response
+                        )
+                    })
+                    .catch(error => {
+                        console.error(
+                            'Transaction failed:',
+                            error
+                        )
+                    })
+            } else {
+                contractStore
+                    .authorizeAddress(
+                        web3Store.account,
+                        authAddress.value
+                    )
+                    .then(response => {
+                        console.log(
+                            'Transaction successful:',
+                            response
+                        )
+                    })
+                    .catch(error => {
+                        console.error(
+                            'Transaction failed:',
+                            error
+                        )
+                    })
+            }
         } else console.error('Contract not found')
     }
 

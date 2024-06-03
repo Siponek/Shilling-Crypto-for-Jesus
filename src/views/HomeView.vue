@@ -22,7 +22,10 @@
                     'col-disconnected': !web3Store.connected
                 }"
             >
-                <v-container class="top-content">
+                <v-container
+                    class="top-content min-w-70px"
+                    min-width="250px"
+                >
                     <v-card
                         title="Contract Address"
                         class="color-black p-1"
@@ -97,7 +100,10 @@
 
         <Transition :duration="1200">
             <v-col v-if="web3Store.connected" md="4" sm="3">
-                <v-container class="main-content">
+                <v-container
+                    class="main-content"
+                    min-width="250px"
+                >
                     <v-card
                         v-if="web3Store.connected"
                         class="color-black"
@@ -123,7 +129,10 @@
         </Transition>
         <Transition :duration="1200">
             <v-col v-if="web3Store.connected" md="4" sm="3">
-                <v-container class="lottery-content">
+                <v-container
+                    class="lottery-content"
+                    min-width="250px"
+                >
                     <v-card
                         title="Lottery Interface"
                         v-if="web3Store.connected"

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import type { id } from 'vuetify/locale'
 import { Contract, type Address } from 'web3'
 
 interface Range {
@@ -29,7 +30,11 @@ export const useContractStore = defineStore('contract_store', {
         currentWinnersArray: [] as unknown as {
             studentId: string
             winningId: number
-        }[]
+        }[],
+        currentStudentCredentials: {} as unknown as {
+            firstName: string
+            lastName: string
+        }
         // currentStudentRanges: [] as ParticipantWithRanges[]
     }),
     actions: {
@@ -77,6 +82,52 @@ export const useContractStore = defineStore('contract_store', {
             } catch (error) {
                 console.error(
                     'Error authorizing address:',
+                    error
+                )
+                throw error
+            }
+        },
+        async deauthorizeAddress(
+            currentAddress: Address,
+            addressToAuthorize: Address
+        ): Promise<void> {
+            if (!this.storeContract) {
+                throw new Error('Contract not set')
+            }
+
+            try {
+                console.log(
+                    'Deauthorizing address: ',
+                    addressToAuthorize
+                )
+                await this.storeContract.methods
+                    .deauthorizeAddress(addressToAuthorize)
+                    .send({ from: currentAddress })
+                    .on('transactionHash', hash => {
+                        console.log('transactionHash', hash)
+                    })
+                    .on(
+                        'confirmation',
+                        (confirmations: any) => {
+                            console.log(
+                                'confirmation',
+                                confirmations
+                            )
+                        }
+                    )
+                    .on('receipt', receipt => {
+                        console.log(receipt)
+                    })
+                    .on('error', error => {
+                        // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
+                        console.log(
+                            'Transaction failed',
+                            error
+                        )
+                    })
+            } catch (error) {
+                console.error(
+                    'Error deauthorizing address:',
                     error
                 )
                 throw error
@@ -194,6 +245,42 @@ export const useContractStore = defineStore('contract_store', {
                 throw error
             }
         },
+        async getParticipantCredentials(
+            currentAddress: Address,
+            id: string
+        ): Promise<void> {
+            if (!this.storeContract) {
+                throw new Error('Contract not set')
+            }
+            try {
+                const result = await this.storeContract.methods
+                    .getParticipantCredentials(id)
+                    .call({ from: currentAddress })
+                console.log(
+                    'getParticipantCredentials() result:',
+                    result
+                )
+                if (typeof result === 'object') {
+                    this.currentStudentCredentials =
+                        result as any as {
+                            firstName: string
+                            lastName: string
+                        }
+                } else {
+                    console.error(
+                        'Error fetching participant credentials: result is not an object'
+                    )
+                    console.log(result, typeof result)
+                }
+            } catch (error) {
+                console.error(
+                    'Error fetching participant credentials:',
+                    error
+                )
+                throw error
+            }
+        },
+
         async findParticipantByTicketId(
             ticketId: number,
             participants: ParticipantWithRanges[]
