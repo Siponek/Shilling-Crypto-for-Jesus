@@ -402,7 +402,6 @@ export const useContractStore = defineStore('contract_store', {
             }
             const winnnersArray = []
             for (const winningId of this.currentWinningIds) {
-                console.log('Checking for winner:', winningId)
                 for (const participant of this
                     .currentStudentRanges) {
                     const winner = this.isWinner(
@@ -420,30 +419,26 @@ export const useContractStore = defineStore('contract_store', {
             this.currentWinnersArray = winnnersArray
         },
         isWinner(ticket: number, ranges: Range[]): boolean {
+            if (ranges.length < 1) {
+                console.error('No ranges to check')
+                return false
+            }
             // First number in range is inclusive, second is exclusive
             let lo = 0
             // -1 because the last number is exclusive
             let hi = ranges.length - 1
-            do {
-                const mid = Math.floor(lo + (lo + hi) / 2)
-                if (mid >= ranges.length) {
-                    console.error('Outside of range')
-                    return false
-                }
+            while (lo <= hi) {
+                // Changed to allow checking the mid point when lo equals hi
+                const mid = lo + Math.floor((hi - lo) / 2)
                 const v = ranges[mid]
                 if (v.start <= ticket && ticket < v.end) {
                     return true
                 } else if (ticket < v.start) {
-                    hi = mid
-                } else if (ticket >= v.end) {
-                    // If the ticket is equal to the end of the range and the next range has this number
-                    // as the start, then the we can move to next range and win at the start of the next range
-                    lo = mid + 1
+                    hi = mid - 1 // Changed to -1 to avoid infinite loop
                 } else {
-                    console.error('Error in binary search')
-                    return false
+                    lo = mid + 1 // Continue search in the upper half
                 }
-            } while (lo <= hi)
+            }
             return false
         }
     }
